@@ -1,0 +1,33 @@
+version: '3.8' # Docker Compose 파일 형식 버전 지정 (최신 버전을 사용하는 것이 좋음)
+
+services: # 이 YAML 파일에서 정의할 서비스들을 나열
+  db: # 첫 번째 서비스: MySQL 데이터베이스
+    image: mysql:8.0 # 사용할 MySQL Docker 이미지 (버전 8.0)
+    container_name: mysql_db # 컨테이너 이름 지정 (컨테이너 식별 및 네트워크 통신에 사용)
+    environment: # 이 컨테이너 내에서 사용될 환경 변수 설정
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # 루트 사용자 비밀번호 (보안을 위해 .env에서 가져오도록 설정)
+      MYSQL_DATABASE: ${MYSQL_DATABASE} # 생성할 데이터베이스 이름 (.env에서 가져오도록 설정)
+      # MYSQL_USER: myuser  # 일반 사용자 계정 (필요시 추가)
+      # MYSQL_PASSWORD: mypassword # 일반 사용자 비밀번호 (필요시 추가)
+    volumes: # 데이터 영속성을 위한 볼륨 설정
+      - mysql_data:/var/lib/mysql # 호스트의 'mysql_data' 볼륨을 컨테이너의 MySQL 데이터 디렉토리에 마운트
+    ports: # 호스트 포트와 컨테이너 포트 매핑 (외부에서 DB 접속 시 사용)
+      - "3306:3306" # 호스트의 3306 포트를 컨테이너의 3306 포트에 연결
+
+  web: # 두 번째 서비스: FastAPI 웹 애플리케이션
+    build: # 이 서비스의 이미지를 빌드할 설정
+      context: . # Dockerfile이 있는 경로 (현재 디렉토리)
+      dockerfile: Dockerfile # 사용할 Dockerfile 이름 (기본값)
+    container_name: fastapi_web # 컨테이너 이름 지정
+    ports:
+      - "8000:8000" # 호스트의 8000 포트를 컨테이너의 8000 포트에 연결
+    depends_on: # 이 서비스가 시작되기 전에 'db' 서비스가 먼저 시작되어야 함을 명시
+      - db
+    environment: # 이 컨테이너 내에서 사용될 환경 변수 설정 (FastAPI에서 DB 연결에 사용)
+      DATABASE_URL: ${DATABASE_URL} # 데이터베이스 연결 URL (.env에서 가져오도록 설정)
+    volumes: # (선택 사항) 개발 중 코드 변경 시 즉시 반영을 위한 볼륨 마운트
+      - ./app:/app # 호스트의 './app' 디렉토리를 컨테이너의 '/app'에 마운트
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload # 컨테이너 실행 명령어 (개발 시 자동 리로드)
+
+volumes: # Docker 볼륨 정의 (컨테이너가 삭제되어도 데이터가 유지되도록 함)
+  mysql_data: # 'mysql_data'라는 이름의 볼륨 정의
