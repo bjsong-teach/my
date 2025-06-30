@@ -1,0 +1,21 @@
+# MySQL 데이터베이스 설정
+# 이 비밀번호는 Docker Compose에서 MySQL 컨테이너를 시작할 때 사용됩니다.
+# 실제 운영 환경에서는 훨씬 더 강력하고 복잡한 비밀번호를 사용해야 합니다.
+MYSQL_ROOT_PASSWORD=1234 # <-- 여기에 원하는 비밀번호를 직접 입력하세요.
+
+# MySQL 컨테이너 내부에 생성될 데이터베이스 이름입니다.
+MYSQL_DATABASE=blog_db
+
+# FastAPI 애플리케이션이 MySQL 데이터베이스에 연결하는 데 사용할 URL입니다.
+# 형식: mysql+mysqlconnector://<사용자이름>:${MYSQL_ROOT_PASSWORD}@<MySQL서비스이름>:<포트>/<데이터베이스이름>
+# - 'root': MySQL 사용자 이름
+# - ${MYSQL_ROOT_PASSWORD}: 위에서 설정한 MySQL 루트 비밀번호를 가져옵니다.
+# - 'db': docker-compose.yml 파일에 정의된 MySQL 서비스의 이름입니다. (컨테이너 간 통신 시 사용)
+# - '3306': MySQL 기본 포트
+# - ${MYSQL_DATABASE}: 위에서 설정한 데이터베이스 이름을 가져옵니다.
+DATABASE_URL=mysql+mysqlconnector://root:${MYSQL_ROOT_PASSWORD}@db:3306/${MYSQL_DATABASE}
+
+# (선택 사항) FastAPI 애플리케이션에서 JWT 토큰 서명 등에 사용될 시크릿 키입니다.
+# 이 값도 실제 운영 환경에서는 더 길고 복잡하게 생성해야 합니다.
+# 예: import secrets; secrets.token_urlsafe(32) 로 생성 가능
+SECRET_KEY=ifOeRwsff2KOYz2hNJc4PWWHd4iJ_InjoQNiMr7HbAY
